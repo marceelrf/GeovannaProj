@@ -10,4 +10,14 @@ date: today
 
 ## Methods
 
+-   Boostrap 1000x;
+
+-   Principal component analysis (**PCA**);
+
 ## Results
+
+### Boostrap
+
+```{r}
+library(boot)
+```
