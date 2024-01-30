@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Marcel Ferreira">
-<meta name="dcterms.date" content="2024-01-18">
+<meta name="dcterms.date" content="2024-01-30">
 
 <title>Geovanna - Analysis</title>
 <style>
@@ -98,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 18, 2024</p>
+      <p class="date">January 30, 2024</p>
     </div>
   </div>
   
@@ -111,11 +111,55 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="about" class="level2">
 <h2 class="anchored" data-anchor-id="about">About</h2>
 </section>
+<section id="data" class="level2">
+<h2 class="anchored" data-anchor-id="data">Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_xlsx</span>(<span class="at">path =</span> <span class="st">"data/data_mrf.xlsx"</span>,<span class="at">sheet =</span> <span class="dv">2</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 x 8
+  Citosina     N Trat  `0h`  `6h`  `12h` `18h`              `24h`             
+  &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;              &lt;chr&gt;             
+1 Bdef2        1 Ctl-  &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  2.0819999999999999 &lt;0.000            
+2 Bdef2        1 Ctl+  &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  24.792000000000002 133.80600000000001
+3 Bdef2        1 Mh    &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  37.948             &lt;0.000            
+4 Bdef2        1 Fn    &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  295.161            &lt;0.000            
+5 Bdef2        1 Mh+Fn &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  &lt;0.000             &lt;0.000            
+6 Bdef2        1 Bf    &lt;NA&gt;  &lt;NA&gt;  &lt;NA&gt;  &lt;0.000             82.453000000000003</code></pre>
+</div>
+</div>
+<p>É necessário arrumar os dados seguindo as estas considerações:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_fix <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">ends_with</span>(<span class="st">"h"</span>),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                \(x) <span class="fu">str_remove</span>(x,<span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">&lt;|</span><span class="sc">\\</span><span class="st">&gt;"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">ends_with</span>(<span class="st">"h"</span>),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Time"</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"Values"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Values =</span> <span class="fu">as.numeric</span>(Values),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Time =</span> <span class="fu">factor</span>(Time,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                       <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"0h"</span>,<span class="st">"6h"</span>,<span class="st">"12h"</span>,<span class="st">"18h"</span>,<span class="st">"24h"</span>)))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data_fix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 x 5
+  Citosina     N Trat  Time  Values
+  &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt; &lt;fct&gt;  &lt;dbl&gt;
+1 Bdef2        1 Ctl-  0h     NA   
+2 Bdef2        1 Ctl-  6h     NA   
+3 Bdef2        1 Ctl-  12h    NA   
+4 Bdef2        1 Ctl-  18h     2.08
+5 Bdef2        1 Ctl-  24h     0   
+6 Bdef2        1 Ctl+  0h     NA   </code></pre>
+</div>
+</div>
+</section>
 <section id="methods" class="level2">
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
 <ul>
 <li><p>Boostrap 1000x;</p></li>
-<li><p>Principal component analysis;</p></li>
+<li><p>Principal component analysis (<strong>PCA</strong>);</p></li>
 </ul>
 </section>
 <section id="results" class="level2">
@@ -123,7 +167,242 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="boostrap" class="level3">
 <h3 class="anchored" data-anchor-id="boostrap">Boostrap</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(boot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(boot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="pca" class="level3">
+<h3 class="anchored" data-anchor-id="pca">PCA</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>PCA_mat <span class="ot">&lt;-</span> data_fix <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">drop_na</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">code =</span> glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"{Trat}_{Time}_{N}"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#select(Trat,N,Time) %&gt;% </span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> code, <span class="at">values_from =</span> Values,<span class="at">id_cols =</span> Citosina) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="at">var =</span> <span class="st">"Citosina"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span><span class="fu">replace_na</span>(.x, <span class="dv">0</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>()</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(PCA_mat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      Ctl-_18h_1 Ctl-_24h_1 Ctl+_18h_1 Ctl+_24h_1 Mh_18h_1 Mh_24h_1 Fn_18h_1
+Bdef2      2.082      0.000     24.792    133.806   37.948    0.000  295.161
+Bdef3     12.043     13.657     15.919      3.918   10.287    6.717    3.230
+IL1B       0.000      0.000      0.000      0.000    0.000    0.000    0.000
+TNFa       0.214      1.008      0.342      0.499    0.543    1.764    2.684
+IL6       13.134      5.660     10.308      8.312   20.010   14.670   42.434
+IL8        1.223      0.000      1.318      0.407    2.597    2.239   15.428
+      Fn_24h_1 Mh+Fn_18h_1 Mh+Fn_24h_1 Bf_18h_1 Bf_24h_1 Mh+Bf_18h_1
+Bdef2    0.000       0.000       0.000    0.000   82.453       0.000
+Bdef3   11.508       0.000       0.000    1.560    9.910       3.918
+IL1B     0.000       0.000       0.000    0.000    0.000       0.000
+TNFa     0.122       0.702       0.508    0.385    0.738       5.155
+IL6     56.566      42.840      59.786   13.032   16.784      13.464
+IL8     22.530      19.571      16.312    1.469    2.207       1.875
+      Mh+Bf_24h_1 Pa_18h_1 Pa_24h_1 Mh+Pa_18h_1 Mh+Pa_24h_1 Sa_18h_1 Sa_24h_1
+Bdef2       4.762    3.193   59.275       0.000       0.000    0.000   37.407
+Bdef3       3.630    9.783    1.839       7.793      21.977    8.544    4.642
+IL1B        0.000    0.000    0.000       0.000       0.000    0.000    0.000
+TNFa        0.810    0.032    0.774       0.000       1.310    0.351    0.359
+IL6        20.002   11.142   14.884      12.690      17.028   13.536   14.240
+IL8         8.072    1.145    1.677       2.440       2.488    2.090    1.661
+      Mh+Sa_18h_1 Mh+Sa_24h_1 Sg_18h_1 Sg_24h_1 Mh+Sg_18h_1 Mh+Sg_24h_1
+Bdef2      64.518       0.000    0.000    0.000      17.823       0.000
+Bdef3      15.594      15.702   14.386    3.532       3.630       6.643
+IL1B        0.000       0.000    0.000    0.000       0.000       0.000
+TNFa        0.256       0.256    0.525    0.325       0.155       0.265
+IL6         7.158      14.962    9.920   12.710       4.840      10.424
+IL8         0.165       2.460    0.967    1.883       0.000       1.096
+      Ctl-_18h_2 Ctl-_24h_2 Ctl+_18h_2 Ctl+_24h_2 Mh_18h_2 Mh_24h_2 Fn_18h_2
+Bdef2      0.000      0.000      2.082      0.000    0.000   89.190    0.000
+Bdef3    419.844     16.776      6.493      5.399   63.555    4.985    3.823
+IL1B       0.000      0.000      0.000      0.000    0.013    0.000    0.006
+TNFa       0.000      0.000      0.000      0.000    0.000    0.000    2.124
+IL6        3.304      7.036      3.026      8.110    7.116   12.794   39.572
+IL8        0.000      1.423      1.017      1.791    0.627    3.353   19.351
+      Fn_24h_2 Mh+Fn_18h_2 Mh+Fn_24h_2 Bf_18h_2 Bf_24h_2 Mh+Bf_18h_2
+Bdef2    0.000      13.534      55.244    0.000    0.000      46.197
+Bdef3    4.900       6.342       5.481    5.069   11.086      17.042
+IL1B     0.000       0.074       0.007    0.050    0.028       0.002
+TNFa     0.000       0.000       0.000    0.000    0.000       0.000
+IL6     47.202      34.920      49.306   12.606   14.280       8.862
+IL8     28.755      13.711      18.014    2.096    2.958       1.364
+      Mh+Bf_24h_2 Pa_18h_2 Pa_24h_2 Mh+Pa_18h_2 Mh+Pa_24h_2 Sa_18h_2 Sa_24h_2
+Bdef2      20.769   51.823    0.000       0.000       0.000    0.000    0.000
+Bdef3       6.342    0.000    0.000       0.000      54.713    7.441    2.804
+IL1B        0.000    0.009    0.046       0.000       0.006    0.000    0.007
+TNFa        0.000    0.000    0.000       0.000       0.000    0.000    0.000
+IL6        15.982    7.292   15.728      12.478      16.936   10.478   13.330
+IL8         3.539    1.485    3.287       2.383       4.018    3.116    2.631
+      Mh+Sa_18h_2 Mh+Sa_24h_2 Sg_18h_2 Sg_24h_2 Mh+Sg_18h_2 Mh+Sg_24h_2
+Bdef2       0.000     247.758   23.271    0.000       0.000      48.998
+Bdef3       9.463      41.975    9.399   28.493       7.583      10.720
+IL1B        0.023       0.007    0.000    0.000       0.000       0.000
+TNFa        0.000       0.000    0.000    0.000       0.000       0.000
+IL6         9.182      14.798   14.134   12.426       3.554      11.158
+IL8         1.995       3.324    3.840    3.222       0.503       3.079
+      Ctl-_18h_3 Ctl-_24h_3 Ctl+_18h_3 Ctl+_24h_3 Mh_18h_3 Mh_24h_3 Fn_18h_3
+Bdef2      0.000      0.000     25.813     52.959    0.000    0.000   14.945
+Bdef3     19.747     11.806     15.213     10.099    8.342    5.069    1.839
+IL1B       0.000      0.000      0.000      0.000    0.000    0.000    0.000
+TNFa       1.420      1.491      1.429      1.394    1.324    1.499    1.818
+IL6        6.370     15.704      3.720     15.862    5.412   17.500   27.454
+IL8        0.826      2.340      0.357      2.089    0.646    2.432    8.183
+      Fn_24h_3 Mh+Fn_18h_3 Mh+Fn_24h_3 Bf_18h_3 Bf_24h_3 Mh+Bf_18h_3
+Bdef2   19.780      43.974       0.000    0.000    0.000       0.000
+Bdef3    8.342       6.791       4.815   10.720    2.100      12.453
+IL1B     0.000       0.000       0.000    0.000    0.000       0.000
+TNFa     1.676       1.543       2.104    1.943    1.720       1.800
+IL6     50.610      34.256      58.144    5.656   17.418       6.636
+IL8     17.094       8.317      16.973    0.842    2.708       1.137
+      Mh+Bf_24h_3 Pa_18h_3 Pa_24h_3 Mh+Pa_18h_3 Mh+Pa_24h_3 Sa_18h_3 Sa_24h_3
+Bdef2       0.000    0.000   89.190       0.000       0.000    0.000   59.854
+Bdef3       7.723    0.000   11.747       5.399      18.976   18.769    5.399
+IL1B        0.000    0.000    0.000       0.000       0.000    0.000    0.000
+TNFa        1.455    1.297    2.311       1.420       1.464    2.320    1.420
+IL6        21.962    5.000   17.412       7.406      20.816    4.884   16.252
+IL8         4.115    0.699    2.488       1.447       4.162    0.681    3.176
+      Mh+Sa_18h_3 Mh+Sa_24h_3 Sg_18h_3 Sg_24h_3 Mh+Sg_18h_3 Mh+Sg_24h_3
+Bdef2       0.000       0.000    0.000   25.302      59.854       0.000
+Bdef3       0.000       0.000   12.743  419.844       7.155       0.000
+IL1B        0.000       0.000    0.000    0.000       0.000       0.000
+TNFa        1.570       1.579    1.997    1.447       2.158       1.836
+IL6         5.712      21.426    5.504   15.768       4.842      14.144
+IL8         0.675       3.788    0.965    3.092       1.055       2.729
+      Ctl-_0h_1 Ctl-_6h_1 Ctl-_12h_1 Ctl+_0h_1 Ctl+_6h_1 Ctl+_12h_1 Mh_0h_1
+Bdef2     0.000     0.000      0.000      0.00     0.000      0.000   0.000
+Bdef3     0.000     0.000      0.000      0.00     0.000      0.000   0.000
+IL1B      0.000     0.000      0.000      0.00     0.000      0.000   0.000
+TNFa      0.525     0.342      0.605      1.99     0.909      0.516   0.455
+IL6       0.000     0.000      4.332      0.00     1.416     10.936   0.000
+IL8       0.000     0.000      0.000      0.00     0.000      0.481   0.000
+      Mh_6h_1 Mh_12h_1 Fn_0h_1 Fn_6h_1 Fn_12h_1 Mh+Fn_0h_1 Mh+Fn_6h_1
+Bdef2   0.000    0.000   0.000   0.000    0.000      0.000      0.000
+Bdef3   0.000    0.000   0.000   0.000    0.000      0.000      0.000
+IL1B    0.000    0.000   0.000   0.000    0.000      0.000      0.000
+TNFa    0.738    0.188   1.026   0.693    0.464      0.325      0.064
+IL6     1.416    4.642   4.094  11.706   26.920      0.000      7.936
+IL8     0.000    0.000   0.000   4.375   13.261      0.000      1.526
+      Mh+Fn_12h_1 Bf_0h_1 Bf_6h_1 Bf_12h_1 Mh+Bf_0h_1 Mh+Bf_6h_1 Mh+Bf_12h_1
+Bdef2       0.000   0.000   0.000    0.000      0.000      0.000       0.000
+Bdef3       0.000   0.000   0.000    0.000      0.000      0.000       0.000
+IL1B        0.000   0.000   0.000    0.000      0.000      0.000       0.000
+TNFa        3.284   1.699   0.032    1.181      2.761      0.138       0.622
+IL6        20.424   0.000   1.342    6.974      0.000      3.966       5.756
+IL8         6.472   0.000   0.000    0.000      0.000      0.000       0.000
+      Pa_0h_1 Pa_6h_1 Pa_12h_1 Mh+Pa_0h_1 Mh+Pa_6h_1 Mh+Pa_12h_1 Sa_0h_1
+Bdef2   0.000   0.000    0.000      0.000      0.000       0.000   0.000
+Bdef3   0.000   0.000    0.000      0.000      0.000       0.000   0.000
+IL1B    0.000   0.000    0.000      0.000      0.000       0.000   0.000
+TNFa    0.774   1.596    0.658      2.713      0.359       0.455   0.282
+IL6     0.000   1.198    3.978      0.000      3.474       6.176   0.000
+IL8     0.000   0.000    0.000      0.000      0.000       0.301   0.000
+      Sa_6h_1 Sa_12h_1 Mh+Sa_0h_1 Mh+Sa_6h_1 Mh+Sa_12h_1 Sg_0h_1 Sg_6h_1
+Bdef2   0.000    0.000       0.00      0.000       0.000   0.000   0.000
+Bdef3   0.000    0.000       0.00      0.000       0.000   0.000   0.000
+IL1B    0.000    0.000       0.00      0.000       0.000   0.000   0.000
+TNFa    2.160    0.622       0.49      0.403       0.222   0.256   1.924
+IL6     1.354    3.682       0.13      2.080       4.520   0.000   4.390
+IL8     0.000    0.000       0.00      0.000       0.000   0.000   0.000
+      Sg_12h_1 Mh+Sg_0h_1 Mh+Sg_6h_1 Mh+Sg_12h_1 Ctl-_0h_2 Ctl-_6h_2 Ctl-_12h_2
+Bdef2    0.000      0.000      0.000       0.000         0       0.0      0.000
+Bdef3    0.000      0.000      0.000       0.000         0       0.0      0.000
+IL1B     0.000      0.000      0.000       0.000         0       0.0      0.007
+TNFa     0.420      0.429      0.438       0.081         0       0.0      0.000
+IL6      4.744      0.000      1.300       1.416         0       0.4      2.446
+IL8      0.000      0.000      0.000       0.000         0       0.0      0.000
+      Ctl+_0h_2 Ctl+_6h_2 Ctl+_12h_2 Mh_0h_2 Mh_6h_2 Mh_12h_2 Fn_0h_2 Fn_6h_2
+Bdef2         0     0.000      0.000       0   0.000    0.000       0   0.000
+Bdef3         0     0.000      0.000       0   0.000    0.000       0   0.000
+IL1B          0     0.000      0.000       0   0.000    0.000       0   0.000
+TNFa          0     0.000      0.000       0   0.000    0.000       0   0.000
+IL6           0     0.436      2.952       0   1.518    5.142       0  12.532
+IL8           0     0.000      0.000       0   0.000    0.438       0   6.728
+      Fn_12h_2 Mh+Fn_0h_2 Mh+Fn_6h_2 Mh+Fn_12h_2 Bf_0h_2 Bf_6h_2 Bf_12h_2
+Bdef2    0.000          0      0.000       0.000   0.000   0.000    0.000
+Bdef3    0.000          0      0.000       0.000   0.000   0.000    0.000
+IL1B     0.000          0      0.000       0.049   0.001   0.000    0.000
+TNFa     0.000          0      0.000       0.000   0.000   0.000    0.000
+IL6     18.888          0     17.050      25.500   0.000   3.752    8.526
+IL8     10.723          0      7.724      11.110   0.000   0.129    1.949
+      Mh+Bf_0h_2 Mh+Bf_6h_2 Mh+Bf_12h_2 Pa_0h_2 Pa_6h_2 Pa_12h_2 Mh+Pa_0h_2
+Bdef2          0      0.000       0.000       0   0.000    0.000          0
+Bdef3          0      0.000       0.000       0   0.000    0.000          0
+IL1B           0      0.000       0.000       0   0.000    0.000          0
+TNFa           0      0.000       0.000       0   0.000    0.000          0
+IL6            0     11.660       9.536       0   7.048    9.308          0
+IL8            0      2.107       1.546       0   1.638    2.234          0
+      Mh+Pa_6h_2 Mh+Pa_12h_2 Sa_0h_2 Sa_6h_2 Sa_12h_2 Mh+Sa_0h_2 Mh+Sa_6h_2
+Bdef2       0.00       0.000       0   0.000    0.000          0      0.000
+Bdef3       0.00       0.000       0   0.000    0.000          0      0.000
+IL1B        0.00       0.000       0   0.000    0.000          0      0.000
+TNFa        0.00       0.000       0   0.000    0.000          0      0.000
+IL6         5.52       6.220       0   7.268    7.308          0      7.660
+IL8         0.90       0.233       0   1.550    1.878          0      1.619
+      Mh+Sa_12h_2 Sg_0h_2 Sg_6h_2 Sg_12h_2 Mh+Sg_0h_2 Mh+Sg_6h_2 Mh+Sg_12h_2
+Bdef2       0.000       0   0.000    0.000          0      0.000       0.000
+Bdef3       0.000       0   0.000    0.000          0      0.000       0.000
+IL1B        0.000       0   0.000    0.000          0      0.000       0.000
+TNFa        0.000       0   0.000    0.000          0      0.000       0.000
+IL6         7.700       0   8.200   12.916          0      2.776       1.454
+IL8         0.925       0   1.734    2.845          0      0.000       0.000
+      Ctl-_0h_3 Ctl-_6h_3 Ctl-_12h_3 Ctl+_0h_3 Ctl+_6h_3 Ctl+_12h_3 Mh_0h_3
+Bdef2     0.000     0.000      0.000      0.00     0.000      0.000   0.000
+Bdef3     0.000     0.000      0.000      0.00     0.000      0.000   0.000
+IL1B      0.000     0.000      0.000      0.00     0.000      0.000   0.000
+TNFa      2.411     1.747      1.650      1.72     1.332      0.770   1.438
+IL6       0.000     1.410      2.166      0.00     1.532      3.802   0.000
+IL8       0.164     0.074      0.105      0.31     1.226      0.610   0.109
+      Mh_6h_3 Mh_12h_3 Fn_0h_3 Fn_6h_3 Fn_12h_3 Mh+Fn_0h_3 Mh+Fn_6h_3
+Bdef2   0.000    0.000   0.000   0.000    0.000      0.000      0.000
+Bdef3   0.000    0.000   0.000   0.000    0.000      0.000      0.000
+IL1B    0.000    0.000   0.000   0.000    0.000      0.000      0.000
+TNFa    0.881    1.341   1.219   1.792    1.650      2.665      1.881
+IL6     2.472    4.010   0.000  14.108   24.650      0.362     23.458
+IL8     0.127    0.406   0.034   6.402   12.873      0.138      9.278
+      Mh+Fn_12h_3 Bf_0h_3 Bf_6h_3 Bf_12h_3 Mh+Bf_0h_3 Mh+Bf_6h_3 Mh+Bf_12h_3
+Bdef2       0.000   0.000   0.000    0.000      0.000      0.000       0.000
+Bdef3       0.000   0.000   0.000    0.000      0.000      0.000       0.000
+IL1B        0.000   0.000   0.000    0.000      0.000      0.000       0.000
+TNFa        1.872   1.685   1.765    1.455      1.774      1.783       1.614
+IL6        29.270   0.908   3.050   10.006      0.074      8.104      10.670
+IL8        11.265   0.056   0.232    1.827      0.142      1.358       1.584
+      Pa_0h_3 Pa_6h_3 Pa_12h_3 Mh+Pa_0h_3 Mh+Pa_6h_3 Mh+Pa_12h_3 Sa_0h_3
+Bdef2   0.000   0.000    0.000      0.000      0.000       0.000   0.000
+Bdef3   0.000   0.000    0.000      0.000      0.000       0.000   0.000
+IL1B    0.000   0.000    0.000      0.000      0.000       0.000   0.000
+TNFa    1.729   1.854    4.562      1.552      1.491       1.332   1.464
+IL6     0.000   6.014   11.816      0.000     12.986      14.188   0.238
+IL8     0.199   0.889    2.449      0.148      2.320       2.794   0.111
+      Sa_6h_3 Sa_12h_3 Mh+Sa_0h_3 Mh+Sa_6h_3 Mh+Sa_12h_3 Sg_0h_3 Sg_6h_3
+Bdef2   0.000    0.000      0.000      0.000       0.000   0.000   0.000
+Bdef3   0.000    0.000      0.000      0.000       0.000   0.000   0.000
+IL1B    0.000    0.000      0.000      0.000       0.000   0.000   0.000
+TNFa    3.930    1.438      1.535      2.429       2.820   1.280   1.712
+IL6     7.298   11.400      0.394     11.868      11.800   0.000  10.346
+IL8     1.538    2.670      0.056      1.985       1.985   0.136   1.807
+      Sg_12h_3 Mh+Sg_0h_3 Mh+Sg_6h_3 Mh+Sg_12h_3
+Bdef2    0.000      0.000      0.000       0.000
+Bdef3    0.000      0.000      0.000       0.000
+IL1B     0.000      0.000      0.000       0.000
+TNFa     1.925      3.464      1.694       1.774
+IL6     10.718      0.784      3.594       2.258
+IL8      2.814      0.092      0.117       0.474</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>PCA <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(PCA_mat,<span class="at">center =</span> T,<span class="at">scale. =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(factoextra)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Welcome! Want to learn more? See two factoextra-related books at https://goo.gl/ve3WBa</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_pca_ind</span>(PCA,<span class="at">geom =</span> <span class="st">"point"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="analysis_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
 </div>
 </section>
 </section>
