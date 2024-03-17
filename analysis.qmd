@@ -10,6 +10,8 @@ date: today
 
 ```{r,echo=FALSE,message=FALSE}
 library(tidyverse)
+library(rsample)
+set.seed(42)
 ```
 
 ## Data
@@ -50,6 +52,110 @@ head(data_fix)
 library(boot)
 ```
 
+```{r}
+data_fix_boot <- data_fix %>%
+  # Remover os NA - Devido a serem artefatos de analise
+  tidyr::drop_na()
+```
+
+```{r}
+lm_fit <- function(data, indices) {
+  # Subset the data based on the indices
+  data_subset <- data[indices, ]
+  
+  # Fit the linear model
+  model <- lm(Values ~ Trat * Time, data = data_subset)
+  
+  # Return the coefficients of interest
+  return(coef(model))
+}
+
+# Set the number of bootstrap replications
+num_replications <- 1000
+
+# Perform the bootstrap analysis
+boot_results <- boot(data = data_fix_boot,
+                     statistic = lm_fit,
+                     R = num_replications)
+
+print(boot_results)
+```
+
+```{r}
+plot(boot_results)
+```
+
+```{r,'For each cytokine'}
+num_replications <- 1000
+
+
+
+data_fix_boot %>% 
+  group_by(Citosina) %>% 
+  nest(.key = "data2") 
+# %>% 
+#   mutate(boot_obj = map(data2,~boot(data = .x,
+#                      statistic = lm_fit,
+#                      R = num_replications)))
+```
+
+```{r}
+# Will be used to fit the models to different bootstrap data sets:
+fit_fun <- function(split, ...) {
+  # We could check for convergence, make new parameters, etc.
+  lm(Values ~ Trat * Time, data = analysis(split), ...) %>%
+    broom::tidy()
+}
+
+# data_fix_boot <- data_fix_boot %>% 
+#   group_by(Citosina) %>% 
+#   nest(.key = "data2") %>% 
+#   mutate(bt = map(data2, ~bootstraps(.x, times = 1000,apparent = TRUE)))
+
+
+tictoc::tic()
+lm_bt <- data_fix_boot %>%
+  group_by(Citosina) %>% 
+  nest(.key = "data2") %>% 
+  mutate(bt = map(data2, ~bootstraps(.x, times = 1000,apparent = TRUE))) %>% 
+  unnest(bt) %>%
+  mutate(models = map(splits, ~ fit_fun(.x)))
+tictoc::toc()
+```
+
+```{r}
+lm_coef <- 
+  lm_bt %>%
+  dplyr::select(-splits) %>%
+  # Turn it into a tibble by stacking the `models` col
+  unnest(cols = models) %>%
+  # Get rid of unneeded columns
+  dplyr::select(id, term, estimate)
+```
+
+```{r}
+# library(GGally)
+# 
+# tictoc::tic()
+# tmp <- lm_coef %>% 
+#   # Put different parameters in columns
+#   tidyr::pivot_wider(names_from = term, values_from = estimate) %>% 
+#   # Keep only numeric columns
+#   dplyr::select(-id) %>% 
+#   nest() %>% 
+#   mutate(p = map(data, ~ggscatmat(.x, alpha = .25)))
+# tictoc::toc()
+
+  
+```
+
+```{r}
+lm_coef %>% 
+  ggplot(aes(x = estimate)) + 
+  geom_histogram(bins = 20, col = "white") + 
+  facet_wrap(~ term, scales = "free_x")
+```
+
 ### PCA
 
 ```{r}
@@ -66,7 +172,7 @@ head(PCA_mat)
 ```
 
 ```{r}
-PCA <- prcomp(PCA_mat,center = T,scale. = F)
+PCA <- prcomp(PCA_mat)
 ```
 
 ```{r}
@@ -75,4 +181,10 @@ library(factoextra)
 
 ```{r}
 fviz_pca_ind(PCA,geom = "point")
+```
+
+### Exclude all zeros
+
+```{r}
+t(PCA_mat) |> View()
 ```
