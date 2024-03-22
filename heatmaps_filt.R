@@ -18,6 +18,8 @@ prep_bdef <- tibble(groups =rownames(Bdef1_med_scaled)) %>%
 ha_bdef = rowAnnotation(
   Treatment = prep_bdef$treat, 
   Time = factor(prep_bdef$time,levels = c("18h","24h")),
+  col = list(Time = c("18h" = "coral2",
+                      "24h" = "dodgerblue")),
   gp = gpar(col = "black")
 )
 
