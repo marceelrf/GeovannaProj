@@ -1,3 +1,5 @@
+library(ComplexHeatmap)
+library(tidyverse)
 Bdef1_med_mat <- data_fix_stat %>% 
   select(Time,media) %>% 
   ungroup() %>% 
